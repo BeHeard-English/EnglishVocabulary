@@ -240,15 +240,35 @@
         {w: "Inundate", i: "/ˈɪnʌndeɪt/", m: "Tràn ngập", e: "We were inundated with applications for the job."}
     ];
 
+   const synth = window.speechSynthesis;
     let userVocab = [];
-    const synth = window.speechSynthesis;
 
-    // QUAN TRỌNG: Mở khóa âm thanh di động ngay khi người dùng bấm nút "Bắt đầu"
+    // --- CƠ CHẾ GIỌNG ĐỌC XỊN ---
+    function getBestVoice() {
+        const voices = synth.getVoices();
+        // Thứ tự ưu tiên: Google (Android/Chrome) -> Siri (iOS) -> Premium -> en-US mặc định
+        return voices.find(v => v.name.includes('Google') && v.lang.includes('en-US')) ||
+               voices.find(v => v.name.includes('Siri') && v.lang.includes('en-US')) ||
+               voices.find(v => v.name.includes('Premium') && v.lang.includes('en-US')) ||
+               voices.find(v => v.lang.includes('en-US')) || voices[0];
+    }
+
+    // Đánh thức audio trên Mobile
     function unlockAudio() {
-        const silent = new SpeechSynthesisUtterance(' ');
-        silent.volume = 0;
-        synth.speak(silent);
-        console.log("Audio Unlocked for Mobile");
+        const ut = new SpeechSynthesisUtterance(' ');
+        ut.volume = 0;
+        synth.speak(ut);
+    }
+
+    function speak(text) {
+        synth.cancel();
+        setTimeout(() => {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.voice = getBestVoice();
+            msg.lang = 'en-US';
+            msg.rate = 0.85; // Tốc độ chuẩn sư phạm
+            synth.speak(msg);
+        }, 50);
     }
 
     function switchTab(id, btn) {
