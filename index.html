@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocabulary Pro - Be Heard</title>
+    <title>Vocabulary Pro - Mobile Fixed</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
             --secondary: #10b981;
-            --accent: #f59e0b;
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #1e293b;
@@ -31,12 +30,11 @@
 
         .header { text-align: center; margin-bottom: 30px; }
         
-        /* Tabs */
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn {
             flex: 1; padding: 14px; border: none; border-radius: 12px;
             background: #e2e8f0; cursor: pointer; font-weight: 700;
-            transition: 0.3s; font-size: 0.9rem;
+            transition: 0.3s;
         }
         .tab-btn.active { background: var(--primary); color: white; }
 
@@ -61,12 +59,11 @@
             font-weight: 800; cursor: pointer; font-size: 1rem;
         }
 
-        /* Quiz UI */
         .quiz-area { display: none; margin-top: 30px; }
         .q-card {
             border: 1px solid #e2e8f0; padding: 20px;
             border-radius: 18px; margin-bottom: 25px;
-            background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            background: #fff;
         }
 
         .q-text { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; }
@@ -75,9 +72,8 @@
         .opt {
             padding: 15px; border: 2px solid #f1f5f9;
             border-radius: 12px; cursor: pointer;
-            transition: 0.2s; font-weight: 500; font-size: 0.95rem;
+            transition: 0.2s; font-weight: 500;
         }
-        .opt:hover { border-color: var(--primary); }
         .opt.selected { background: var(--primary); color: white; border-color: var(--primary); }
 
         .feedback {
@@ -90,17 +86,15 @@
         
         .speak-btn {
             background: #e2e8f0; border: none; border-radius: 50%;
-            width: 38px; height: 38px; cursor: pointer;
+            width: 44px; height: 44px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.4rem; /* To hơn để dễ bấm trên điện thoại */
         }
-
-        .example-box { font-size: 0.9rem; color: #4b5563; font-style: italic; border-top: 1px solid #e2e8f0; pt: 10px; margin-top: 10px; }
 
         .submit-btn {
             width: 100%; padding: 20px; background: var(--secondary);
             color: white; border: none; border-radius: 15px;
-            font-size: 1.2rem; font-weight: 800; cursor: pointer; margin-top: 20px;
+            font-size: 1.2rem; font-weight: 800; cursor: pointer;
         }
 
         #scoreBox { display: none; text-align: center; padding: 25px; border-radius: 20px; background: #0f172a; color: white; margin-bottom: 25px; }
@@ -113,23 +107,23 @@
 <div class="container">
     <div class="header">
         <h1>Vocabulary & Pronunciation</h1>
-        <p>Hệ thống tự động tạo 20 câu hỏi luyện tập</p>
+        <p>Hỗ trợ đầy đủ iPhone, iPad và Android</p>
     </div>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('fileTab', this)">📁 Upload Docx</button>
-        <button class="tab-btn" onclick="switchTab('textTab', this)">✍️ Dán danh sách</button>
+        <button class="tab-btn" onclick="switchTab('textTab', this)">✍️ Paste List</button>
     </div>
 
     <div id="fileTab" class="pane active">
         <div class="upload-zone" onclick="document.getElementById('fileIn').click()">
-            <strong id="fileInfo">Nhấn để tải file Word (.docx)</strong>
+            <strong id="fileInfo">Chạm để tải file Word (.docx)</strong>
             <input type="file" id="fileIn" hidden accept=".docx">
         </div>
     </div>
 
     <div id="textTab" class="pane">
-        <textarea id="rawInput" placeholder="Định dạng: Từ vựng : Nghĩa tiếng Việt&#10;Ví dụ:&#10;Incessant : Liên miên không dứt&#10;Efficacy : Tính hiệu quả"></textarea>
+        <textarea id="rawInput" placeholder="Định dạng: Từ vựng : Nghĩa tiếng Việt"></textarea>
         <button class="action-btn" onclick="processText()">Bắt đầu luyện tập</button>
     </div>
 
@@ -137,12 +131,12 @@
 
     <div id="quizArea" class="quiz-area">
         <div id="quizContent"></div>
-        <button class="submit-btn" onclick="checkAll()">Nộp bài & Xem phiên âm</button>
+        <button class="submit-btn" onclick="checkAll()">Nộp bài & Xem kết quả</button>
     </div>
 </div>
 
 <script>
-    // --- DATABASE MẪU (100 TỪ) ---
+    // --- DATABASE ---
     const megaBank = [
         {w: "Alleviate", i: "/əˈliːvieɪt/", m: "Làm nhẹ bớt", e: "The new medicine helps to alleviate the symptoms of the flu."},
         {w: "Ambivalent", i: "/æmˈbɪvələnt/", m: "Mâu thuẫn trong tư tưởng", e: "He felt ambivalent about his new job; he loved the pay but hated the hours."},
@@ -249,14 +243,13 @@
     let userVocab = [];
     const synth = window.speechSynthesis;
 
-    // Mobile Speech Unlock
-    function unlock() {
-        synth.speak(new SpeechSynthesisUtterance(''));
-        document.removeEventListener('touchstart', unlock);
-        document.removeEventListener('click', unlock);
+    // QUAN TRỌNG: Mở khóa âm thanh di động ngay khi người dùng bấm nút "Bắt đầu"
+    function unlockAudio() {
+        const silent = new SpeechSynthesisUtterance(' ');
+        silent.volume = 0;
+        synth.speak(silent);
+        console.log("Audio Unlocked for Mobile");
     }
-    document.addEventListener('touchstart', unlock);
-    document.addEventListener('click', unlock);
 
     function switchTab(id, btn) {
         document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
@@ -266,14 +259,25 @@
     }
 
     function speak(text) {
+        // Hủy mọi âm thanh đang đọc dở
         synth.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'en-US';
-        msg.rate = 0.8;
-        synth.speak(msg);
+
+        // Chờ 50ms rồi mới đọc (Fix lỗi một số máy Android bị nghẽn lệnh cancel)
+        setTimeout(() => {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.rate = 0.8; 
+            
+            // Một số máy di động cần được "nhắc" lại danh sách voices
+            const voices = synth.getVoices();
+            if (voices.length > 0) {
+                msg.voice = voices.find(v => v.lang.includes('en-US')) || voices[0];
+            }
+            
+            synth.speak(msg);
+        }, 50);
     }
 
-    // --- PARSING LOGIC (Strictly :) ---
     function parseLines(text) {
         userVocab = [];
         text.split('\n').forEach(line => {
@@ -283,18 +287,21 @@
                     userVocab.push({
                         w: parts[0].trim(),
                         m: parts[1].trim(),
-                        i: "/Audio Ready/",
-                        e: "Press 🔊 to hear the pronunciation."
+                        i: "/Listen Word/",
+                        e: "Audio activated."
                     });
                 }
             }
         });
-        if(userVocab.length > 0) generateQuiz();
+        if(userVocab.length > 0) {
+            unlockAudio(); // Mở khóa âm thanh khi bắt đầu
+            generateQuiz();
+        }
     }
 
     function processText() {
         const val = document.getElementById('rawInput').value;
-        if(!val) return alert("Vui lòng dán danh sách từ!");
+        if(!val) return alert("Hãy dán danh sách từ!");
         parseLines(val);
     }
 
@@ -311,35 +318,30 @@
         reader.readAsArrayBuffer(file);
     });
 
-    // --- QUIZ LOGIC (Ensure 20 items) ---
     function generateQuiz() {
         const container = document.getElementById('quizContent');
         container.innerHTML = '';
         document.getElementById('scoreBox').style.display = 'none';
         document.getElementById('quizArea').style.display = 'block';
 
-        // Mix Logic
         let finalPool = [...userVocab];
         if(finalPool.length < 20) {
-            let shuffledBank = megaBank.sort(() => 0.5 - Math.random());
+            let shuffledBank = [...megaBank].sort(() => 0.5 - Math.random());
             for(let item of shuffledBank) {
                 if(finalPool.length >= 20) break;
-                // Avoid duplicates
                 if(!finalPool.some(x => x.w.toLowerCase() === item.w.toLowerCase())) {
                     finalPool.push(item);
                 }
             }
         }
         
-        // Shuffle final 20
         let quiz20 = finalPool.sort(() => 0.5 - Math.random()).slice(0, 20);
 
         quiz20.forEach((item, idx) => {
             const isEngQ = Math.random() > 0.5;
-            const qTxt = isEngQ ? `Nghĩa của từ "<strong>${item.w}</strong>"?` : `Từ nào có nghĩa là: "<strong>${item.m}</strong>"?`;
+            const qTxt = isEngQ ? `Nghĩa của từ "<strong>${item.w}</strong>"?` : `Từ nào nghĩa là: "<strong>${item.m}</strong>"?`;
             const correctAns = isEngQ ? item.m : item.w;
             
-            // Distractors
             let others = quiz20.filter(x => x.w !== item.w).map(x => isEngQ ? x.m : x.w);
             let opts = [correctAns, ...others.sort(() => 0.5 - Math.random()).slice(0, 3)].sort(() => 0.5 - Math.random());
 
@@ -351,13 +353,10 @@
                     </div>
                     <div class="feedback">
                         <div class="ipa-line">
-                            <span class="ipa-text">${item.i}</span>
+                            <span class="ipa-text">${item.w}</span>
                             <button class="speak-btn" onclick="speak('${item.w}')">🔊</button>
                         </div>
-                        <div class="example-box">
-                            <strong>Example:</strong> ${item.e}
-                            <button class="speak-btn" style="width:28px; height:28px; font-size:0.8rem; display:inline-flex; margin-left:10px" onclick="speak('${item.e.replace(/'/g, "\\'")}')">🔊</button>
-                        </div>
+                        <p><strong>Example:</strong> ${item.e}</p>
                     </div>
                 </div>
             `;
@@ -384,13 +383,13 @@
                 fb.style.borderLeftColor = "#10b981";
             } else {
                 fb.style.borderLeftColor = "#ef4444";
-                fb.innerHTML = `<div style="color:#ef4444; font-weight:bold; margin-bottom:8px;">❌ Sai rồi. Đáp án đúng: ${cor}</div>` + fb.innerHTML;
+                fb.innerHTML = `<div style="color:#ef4444; font-weight:bold; margin-bottom:8px;">❌ Sai. Đáp án đúng: ${cor}</div>` + fb.innerHTML;
             }
         });
 
         const box = document.getElementById('scoreBox');
         box.style.display = 'block';
-        box.innerHTML = `<h2>Kết quả: ${score}/20</h2><p>Nhấn vào biểu tượng 🔊 để luyện phát âm các từ vừa học!</p>`;
+        box.innerHTML = `<h2>Kết quả: ${score}/20</h2><p>Chạm vào loa 🔊 để luyện nghe.</p>`;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
