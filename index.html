@@ -9,6 +9,7 @@
         :root {
             --primary: #4f46e5;
             --secondary: #10b981;
+            --danger: #ef4444;
             --bg: #f8fafc;
             --card: #ffffff;
             --text: #1e293b;
@@ -19,6 +20,7 @@
             background: var(--bg);
             color: var(--text);
             margin: 0; padding: 15px;
+            line-height: 1.6;
         }
 
         .container {
@@ -29,41 +31,36 @@
         }
 
         .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--primary); margin-bottom: 5px; }
         
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab-btn {
             flex: 1; padding: 14px; border: none; border-radius: 12px;
             background: #e2e8f0; cursor: pointer; font-weight: 700;
-            transition: 0.3s;
+            transition: 0.3s; font-size: 0.9rem;
         }
         .tab-btn.active { background: var(--primary); color: white; }
 
         .pane { display: none; }
         .pane.active { display: block; }
 
-        .upload-zone {
-            border: 2px dashed #cbd5e1; padding: 35px;
-            border-radius: 18px; text-align: center;
-            cursor: pointer; background: #f1f5f9;
-        }
-
         textarea {
             width: 100%; height: 160px; padding: 15px;
             border-radius: 12px; border: 1px solid #cbd5e1;
-            box-sizing: border-box; font-family: inherit; margin-bottom: 10px;
+            box-sizing: border-box; font-family: inherit; font-size: 1rem;
         }
 
         .action-btn {
             width: 100%; padding: 16px; background: var(--primary);
             color: white; border: none; border-radius: 12px;
-            font-weight: 800; cursor: pointer; font-size: 1rem;
+            font-weight: 800; cursor: pointer; font-size: 1.1rem; margin-top: 10px;
         }
 
         .quiz-area { display: none; margin-top: 30px; }
         .q-card {
             border: 1px solid #e2e8f0; padding: 20px;
             border-radius: 18px; margin-bottom: 25px;
-            background: #fff;
+            background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
         .q-text { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; }
@@ -74,6 +71,7 @@
             border-radius: 12px; cursor: pointer;
             transition: 0.2s; font-weight: 500;
         }
+        .opt:hover { border-color: var(--primary); }
         .opt.selected { background: var(--primary); color: white; border-color: var(--primary); }
 
         .feedback {
@@ -82,14 +80,15 @@
         }
 
         .ipa-line { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-        .ipa-text { color: #be123c; font-weight: 700; font-family: monospace; font-size: 1.1rem; }
+        .ipa-text { color: #be123c; font-weight: 700; font-family: monospace; font-size: 1.2rem; }
         
         .speak-btn {
-            background: #e2e8f0; border: none; border-radius: 50%;
+            background: #4f46e5; color: white; border: none; border-radius: 50%;
             width: 44px; height: 44px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; /* To hơn để dễ bấm trên điện thoại */
+            font-size: 1.2rem; transition: transform 0.2s;
         }
+        .speak-btn:active { transform: scale(0.9); }
 
         .submit-btn {
             width: 100%; padding: 20px; background: var(--secondary);
@@ -106,8 +105,8 @@
 
 <div class="container">
     <div class="header">
-        <h1>Vocabulary & Pronunciation</h1>
-        <p>Học từ vựng cùng Be Heard</p>
+        <h1>Master Vocabulary with Be Heard</h1>
+        <p>Hãy tải danh sách từ vựng cần học vào bên dưới nhé</p>
     </div>
 
     <div class="tabs">
@@ -116,22 +115,22 @@
     </div>
 
     <div id="fileTab" class="pane active">
-        <div class="upload-zone" onclick="document.getElementById('fileIn').click()">
-            <strong id="fileInfo">Chạm để tải file Word (.docx)</strong>
+        <div style="border: 2px dashed #cbd5e1; padding: 35px; border-radius: 18px; text-align: center; cursor: pointer; background: #f1f5f9;" onclick="document.getElementById('fileIn').click()">
+            <strong id="fileInfo">Tap to upload .docx file</strong>
             <input type="file" id="fileIn" hidden accept=".docx">
         </div>
     </div>
 
     <div id="textTab" class="pane">
-        <textarea id="rawInput" placeholder="Định dạng: Từ vựng : Nghĩa tiếng Việt"></textarea>
-        <button class="action-btn" onclick="processText()">Bắt đầu luyện tập</button>
+        <textarea id="rawInput" placeholder="Format: Word : Meaning (Example: Incessant : Liên miên không dứt)"></textarea>
+        <button class="action-btn" onclick="processText()">Start Practice</button>
     </div>
 
     <div id="scoreBox"></div>
 
     <div id="quizArea" class="quiz-area">
         <div id="quizContent"></div>
-        <button class="submit-btn" onclick="checkAll()">Nộp bài & Xem kết quả</button>
+        <button class="submit-btn" onclick="checkAll()">Submit & View Results</button>
     </div>
 </div>
 
@@ -239,38 +238,47 @@
         {w: "Intrinsic", i: "/ɪnˈtrɪnzɪk/", m: "Bản chất", e: "Flexibility is intrinsic to our business model."},
         {w: "Inundate", i: "/ˈɪnʌndeɪt/", m: "Tràn ngập", e: "We were inundated with applications for the job."}
     ];
-
-   const synth = window.speechSynthesis;
+    const synth = window.speechSynthesis;
     let userVocab = [];
 
-    // --- CƠ CHẾ GIỌNG ĐỌC XỊN ---
-    function speak(text) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Stop current speech
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            msg.rate = 0.9;
-            window.speechSynthesis.speak(msg);
-        }
-
-    // Đánh thức audio trên Mobile
-    function unlockAudio() {
-        const ut = new SpeechSynthesisUtterance(' ');
-        ut.volume = 0;
-        synth.speak(ut);
+    // --- HYBRID AUDIO LOGIC ---
+    function isMobile() {
+        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
     function speak(text) {
         synth.cancel();
-        setTimeout(() => {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.voice = getBestVoice();
-            msg.lang = 'en-US';
-            msg.rate = 0.85; // Tốc độ chuẩn sư phạm
+        
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+
+        if (isMobile()) {
+            // LOGIC CHO ĐIỆN THOẠI (Dùng setTimeout và lọc giọng chất lượng)
+            setTimeout(() => {
+                const voices = synth.getVoices();
+                const bestVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en-US')) ||
+                                 voices.find(v => v.name.includes('Siri') && v.lang.includes('en-US')) ||
+                                 voices.find(v => v.lang.includes('en-US'));
+                if(bestVoice) msg.voice = bestVoice;
+                msg.rate = 0.85;
+                synth.speak(msg);
+            }, 50);
+        } else {
+            // LOGIC BAN ĐẦU CHO MÁY TÍNH (Đọc trực tiếp, giữ nguyên như lúc đầu bạn thích)
+            msg.rate = 0.8;
             synth.speak(msg);
-        }, 50);
+        }
     }
 
+    function unlockAudio() {
+        if (isMobile()) {
+            const ut = new SpeechSynthesisUtterance(' ');
+            ut.volume = 0;
+            synth.speak(ut);
+        }
+    }
+
+    // --- CÁC HÀM CÒN LẠI GIỮ NGUYÊN ---
     function switchTab(id, btn) {
         document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -278,62 +286,33 @@
         btn.classList.add('active');
     }
 
-    function speak(text) {
-        // Hủy mọi âm thanh đang đọc dở
-        synth.cancel();
-
-        // Chờ 50ms rồi mới đọc (Fix lỗi một số máy Android bị nghẽn lệnh cancel)
-        setTimeout(() => {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'en-US';
-            msg.rate = 0.8; 
-            
-            // Một số máy di động cần được "nhắc" lại danh sách voices
-            const voices = synth.getVoices();
-            if (voices.length > 0) {
-                msg.voice = voices.find(v => v.lang.includes('en-US')) || voices[0];
-            }
-            
-            synth.speak(msg);
-        }, 50);
-    }
-
     function parseLines(text) {
         userVocab = [];
         text.split('\n').forEach(line => {
             if(line.includes(':')) {
                 const parts = line.split(':');
-                if(parts.length >= 2) {
-                    userVocab.push({
-                        w: parts[0].trim(),
-                        m: parts[1].trim(),
-                        i: "/Listen Word/",
-                        e: ""
-                    });
-                }
+                userVocab.push({ w: parts[0].trim(), m: parts[1].trim(), e: "Practice makes perfect!" });
             }
         });
         if(userVocab.length > 0) {
-            unlockAudio(); // Mở khóa âm thanh khi bắt đầu
+            unlockAudio();
             generateQuiz();
         }
     }
 
     function processText() {
         const val = document.getElementById('rawInput').value;
-        if(!val) return alert("Hãy dán danh sách từ!");
+        if(!val) return alert("Please enter your vocabulary list!");
         parseLines(val);
     }
 
     document.getElementById('fileIn').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if(!file) return;
-        document.getElementById('fileInfo').innerText = "Loaded: " + file.name;
+        document.getElementById('fileInfo').innerText = "File loaded: " + file.name;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            mammoth.extractRawText({ arrayBuffer: ev.target.result }).then(res => {
-                parseLines(res.value);
-            });
+            mammoth.extractRawText({ arrayBuffer: ev.target.result }).then(res => parseLines(res.value));
         };
         reader.readAsArrayBuffer(file);
     });
@@ -344,22 +323,22 @@
         document.getElementById('scoreBox').style.display = 'none';
         document.getElementById('quizArea').style.display = 'block';
 
-        let finalPool = [...userVocab];
-        if(finalPool.length < 20) {
+        let pool = [...userVocab];
+        if(pool.length < 20) {
             let shuffledBank = [...megaBank].sort(() => 0.5 - Math.random());
             for(let item of shuffledBank) {
-                if(finalPool.length >= 20) break;
-                if(!finalPool.some(x => x.w.toLowerCase() === item.w.toLowerCase())) {
-                    finalPool.push(item);
+                if(pool.length >= 20) break;
+                if(!pool.some(x => x.w.toLowerCase() === item.w.toLowerCase())) {
+                    pool.push(item);
                 }
             }
         }
         
-        let quiz20 = finalPool.sort(() => 0.5 - Math.random()).slice(0, 20);
+        let quiz20 = pool.sort(() => 0.5 - Math.random()).slice(0, 20);
 
         quiz20.forEach((item, idx) => {
             const isEngQ = Math.random() > 0.5;
-            const qTxt = isEngQ ? `Nghĩa của từ "<strong>${item.w}</strong>"?` : `Từ nào nghĩa là: "<strong>${item.m}</strong>"?`;
+            const qTxt = isEngQ ? `Meaning of "<strong>${item.w}</strong>"?` : `Which word means: "<strong>${item.m}</strong>"?`;
             const correctAns = isEngQ ? item.m : item.w;
             
             let others = quiz20.filter(x => x.w !== item.w).map(x => isEngQ ? x.m : x.w);
@@ -384,12 +363,12 @@
         window.scrollTo({ top: document.getElementById('quizArea').offsetTop, behavior: 'smooth' });
     }
 
-    window.selectOpt = function(el) {
+    function selectOpt(el) {
         el.parentElement.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
     }
 
-    window.checkAll = function() {
+    function checkAll() {
         const cards = document.querySelectorAll('.q-card');
         let score = 0;
         cards.forEach(card => {
@@ -400,16 +379,16 @@
 
             if(sel && sel.innerText === cor) {
                 score++;
-                fb.style.borderLeftColor = "#10b981";
+                fb.style.borderLeftColor = "var(--secondary)";
             } else {
-                fb.style.borderLeftColor = "#ef4444";
-                fb.innerHTML = `<div style="color:#ef4444; font-weight:bold; margin-bottom:8px;">❌ Sai. Đáp án đúng: ${cor}</div>` + fb.innerHTML;
+                fb.style.borderLeftColor = "var(--danger)";
+                fb.innerHTML = `<div style="color:var(--danger); font-weight:bold; margin-bottom:8px;">❌ Not quite! Correct: ${cor}</div>` + fb.innerHTML;
             }
         });
 
         const box = document.getElementById('scoreBox');
         box.style.display = 'block';
-        box.innerHTML = `<h2>Kết quả: ${score}/20</h2><p>Chạm vào loa 🔊 để luyện nghe.</p>`;
+        box.innerHTML = `<h2>Score: ${score}/20</h2><p>Tap 🔊 to master your pronunciation.</p>`;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
