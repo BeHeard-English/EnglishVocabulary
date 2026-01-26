@@ -244,14 +244,14 @@
     let userVocab = [];
 
     // --- CƠ CHẾ GIỌNG ĐỌC XỊN ---
-    function getBestVoice() {
-        const voices = synth.getVoices();
-        // Thứ tự ưu tiên: Google (Android/Chrome) -> Siri (iOS) -> Premium -> en-US mặc định
-        return voices.find(v => v.name.includes('Google') && v.lang.includes('en-US')) ||
-               voices.find(v => v.name.includes('Siri') && v.lang.includes('en-US')) ||
-               voices.find(v => v.name.includes('Premium') && v.lang.includes('en-US')) ||
-               voices.find(v => v.lang.includes('en-US')) || voices[0];
-    }
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Stop current speech
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+        }
 
     // Đánh thức audio trên Mobile
     function unlockAudio() {
@@ -308,7 +308,7 @@
                         w: parts[0].trim(),
                         m: parts[1].trim(),
                         i: "/Listen Word/",
-                        e: "Audio activated."
+                        e: ""
                     });
                 }
             }
